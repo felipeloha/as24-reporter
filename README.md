@@ -31,4 +31,5 @@ Missing requirements/potential improvements:
 - Upload CSV functionality
 - Controller and endpoint naming
 - Create a proper docker image that runs tests automatically and starts the application
+- Improve/implement the UI/UX 
 
