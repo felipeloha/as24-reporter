@@ -36,10 +36,10 @@ class ReporterTest extends FunSuite {
 
   test("contacts per listing per month") {
     val listings: List[Listing] = Parser.parseFromPath("/listings.csv", "/contacts.csv")
-
+    val TOP = 5
     //simplify the data structure
-    val mostContactsPerMonth =
-      Reporter.mostContactedPerMonth(listings, 5)
+    val mostContactsPerMonth: Seq[(String, Seq[(Int, Int)])] =
+      Reporter.mostContactedPerMonth(listings, TOP)
         .map {
           case (timestamp, listings) =>
             val stats = listings.map {
@@ -48,18 +48,17 @@ class ReporterTest extends FunSuite {
             (timestamp, stats)
         }
 
-    assert(
-      mostContactsPerMonth ==
-        List(
-          ("APRIL.2020", List((1181, 37), (1118, 33), (1006, 29), (1262, 28), (1123, 28))),
-          ("FEBRUARY.2020", List((1271, 37), (1138, 33), (1235, 32), (1006, 32), (1250, 31))),
-          ("JANUARY.2020", List((1061, 21), (1132, 18), (1250, 17), (1285, 17), (1122, 17))),
-          ("JUNE.2020", List((1258, 18), (1006, 15), (1012, 14), (1271, 14), (1037, 14))),
-          ("MARCH.2020", List((1061, 31), (1181, 30), (1271, 29), (1235, 29), (1258, 29))),
-          ("MAY.2020", List((1204, 35), (1098, 32), (1298, 30), (1018, 29), (1132, 27)))
-        )
-    )
+    mostContactsPerMonth.foreach{
+      case (timestamp, entries: Seq[(Int, Int)]) =>
+        assert (entries.size == TOP)
+
+        //TODO integrate scalatest to use counts shuldBe sorted
+        val counts = entries.map(_._2)
+        counts.zip(counts.drop(1)).foreach { case (a, b) => assert(a >= b) }
+    }
   }
+
+
 
 
 }
