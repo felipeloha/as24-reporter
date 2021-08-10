@@ -3,10 +3,12 @@
 ## run the code in a docker container
 - start container: 
   - `docker run -it -p 9000:9000 -v ${PWD}:/root --rm hseeberger/scala-sbt:8u222_1.3.5_2.13.1`
-- in the container:
+- run in the container:
     - `sbt compile`
     - `sbt test`
     - `sbt run`
+- open the view in the web browser where you will see the results of the reports: 
+    - `http://localhost:9000`
   
 # structure
 The is based on the scala play framework.
