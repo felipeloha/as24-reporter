@@ -3,12 +3,13 @@ package services
 import models.Listing
 import org.scalatest.FunSuite
 
-class ReporterTest extends FunSuite {
-  //TODO error and limit cases
+//TODO error and limit cases
 
+
+class ReporterTest extends FunSuite {
 
   test("average by seller type") {
-    val listings: List[Listing] = Parser.parse("/listings.csv", "/contacts.csv")
+    val listings: List[Listing] = Parser.parseFromPath("/listings.csv", "/contacts.csv")
     val averageMap = Reporter.averagePricePerSellerType(listings)
 
     //TODO implement compare function
@@ -19,13 +20,13 @@ class ReporterTest extends FunSuite {
   }
 
   test("average price") {
-    val listings: List[Listing] = Parser.parse("/listings.csv", "/contacts.csv")
+    val listings: List[Listing] = Parser.parseFromPath("/listings.csv", "/contacts.csv")
     val averagePrice = Reporter.averagePrice(listings)
     assert(averagePrice.toDouble == 25381.31666666666666666666666666667)
   }
 
   test("percentage distribution by make") {
-    val listings: List[Listing] = Parser.parse("/listings.csv", "/contacts.csv")
+    val listings: List[Listing] = Parser.parseFromPath("/listings.csv", "/contacts.csv")
     val percentageDistribution = Reporter.percentageDistributionByMake(listings)
 
     assert(
@@ -34,7 +35,9 @@ class ReporterTest extends FunSuite {
   }
 
   test("contacts per listing per month") {
-    val listings: List[Listing] = Parser.parse("/listings.csv", "/contacts.csv")
+    val listings: List[Listing] = Parser.parseFromPath("/listings.csv", "/contacts.csv")
+
+    //simplify the data structure
     val mostContactsPerMonth =
       Reporter.mostContactedPerMonth(listings, 5)
         .map {

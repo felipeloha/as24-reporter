@@ -4,20 +4,30 @@ import scala.io.Source
 import com.github.tototoshi.csv._
 import models.{Contact, Listing}
 
-import java.text.DecimalFormat
+import java.io.InputStream
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.Instant
 
 
+//TODO type validation
+//TODO error handling for unknown path or empty files
+
 object Parser {
 
-  def parse(path: String, contactsPath: String): List[Listing] = {
-    //TODO error handling for unknown path
-    val source = Source.fromInputStream(getClass.getResourceAsStream(path))
-    val reader = CSVReader.open(source)
+  def parseFromPath(listingPath: String, contactsPath: String): List[Listing] = {
+    parseFromSource(
+      Source.fromInputStream(getClass.getResourceAsStream(listingPath)),
+      Source.fromInputStream(getClass.getResourceAsStream(contactsPath))
+    )
+  }
 
-    val contactsSource = Source.fromInputStream(getClass.getResourceAsStream(contactsPath))
+  def parseFromSource(listing: Source, contacts: Source): List[Listing] = {
+    parse(listing, contacts)
+  }
+
+  def parse(listingSource: Source, contactsSource: Source): List[Listing] = {
+    val reader = CSVReader.open(listingSource)
     val contactsReader = CSVReader.open(contactsSource)
 
     //read lines and remove header
@@ -31,21 +41,25 @@ object Parser {
         }
         .groupBy(_.listingId)
 
-    val data: Map[Int, Listing] =
-      lines.foldLeft(Map[Int, Listing]()) { (acc, line) =>
-        parseListing(acc, line, contactGroups)
-      }
+    val listings: List[Listing] =
+      lines
+        .foldLeft(Map[Int, Listing]()) { (acc, line) =>
+          parseListing(acc, line, contactGroups)
+        }
+        .values
+        .toList
 
 
     reader.close()
     contactsReader.close()
 
-    val listings = data.values.toList
     println(s"total listings found: ${listings.length}")
     listings
   }
 
-  private def parseListing(acc: Map[Int, Listing], line: List[String], contactMap: Map[Int, List[Contact]]): Map[Int, Listing] = {
+  private def parseListing(acc: Map[Int, Listing],
+                           line: List[String],
+                           contactMap: Map[Int, List[Contact]]): Map[Int, Listing] = {
     line match {
       case idStr :: make :: price :: mileage :: sellerType :: _ =>
         //TODO type validation
@@ -64,7 +78,6 @@ object Parser {
   private def parseContact(line: List[String]): Contact = {
     line match {
       case listingId :: date :: _ =>
-        //TODO type validation
         Contact(listingId.toInt, parseDate(date))
       case line =>
         println(s"error parsing $line to list of specific elements")

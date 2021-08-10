@@ -1,5 +1,70 @@
-@()
+@(averagePrice: BigDecimal, averageMap: Map[String, BigDecimal], percentageDistribution: Map[String, Double], mostContactsPerMonth: Seq[(String, Seq[(Listing, Int)])])
 
-@main("Welcome to Play") {
-  <h1>Welcome to Play!</h1>
+@formatPrice(price: BigDecimal) = {
+  @{"€ %.2f, -".format(price)}
+}
+
+@main("Reporter") {
+  <h3>Average Price</h3>
+  <div>@{formatPrice(averagePrice)}</div>
+
+
+
+  <h3>Average Listing Price per Seller Type</h3>
+  <table>
+    <tr>
+      <td>Seller Type</td>
+      <td>Average in Euro</td>
+    </tr>
+    @for(listing <- averageMap){
+    <tr>
+      <td>@listing._1</td>
+      <td>@{formatPrice(listing._2)}</td>
+    </tr>
+    }
+  </table>
+
+
+
+
+  <h3>Percentage Distribution of available Cars by Make</h3>
+  <table>
+    <tr>
+      <td>Make</td>
+      <td>Distribution</td>
+    </tr>
+    @for(listing <- percentageDistribution){
+    <tr>
+      <td>@listing._1</td>
+      <td>@{"%.2f".format(listing._2 * 100)}</td>
+    </tr>
+    }
+  </table>
+
+
+
+  <h3>Top 5 most contacted Listings per Month</h3>
+  @for(monthEntry <- mostContactsPerMonth){
+    <h5>@monthEntry._1</h5>
+    <table>
+      <tr>
+        <td>Ranking</td>
+        <td>Listing Id</td>
+        <td>Make</td>
+        <td>Price</td>
+        <td>Mileage</td>
+        <td>Total amount of contacts</td>
+      </tr>
+      @for(listingCount <- monthEntry._2.zipWithIndex){
+        <tr>
+          <td>@{listingCount._2 + 1}</td>
+          <td>@listingCount._1._1.id</td>
+          <td>@listingCount._1._1.make</td>
+          <td>@{formatPrice(listingCount._1._1.price)}</td>
+          <td>@listingCount._1._1.mileage</td>
+          <td>@listingCount._1._2</td>
+        </tr>
+      }
+    </table>
+  }
 }
