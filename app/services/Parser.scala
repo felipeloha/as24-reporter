@@ -3,8 +3,6 @@ package services
 import scala.io.Source
 import com.github.tototoshi.csv._
 import models.{Contact, Listing}
-
-import java.io.InputStream
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.Instant
@@ -34,27 +32,31 @@ object Parser {
     val lines: List[List[String]] = reader.all().drop(1)
     val contactLines: List[List[String]] = contactsReader.all().drop(1)
 
-    val contactGroups: Map[Int, List[Contact]] =
-      contactLines
-        .map {
-          parseContact
-        }
-        .groupBy(_.listingId)
-
-    val listings: List[Listing] =
-      lines
-        .foldLeft(Map[Int, Listing]()) { (acc, line) =>
-          parseListing(acc, line, contactGroups)
-        }
-        .values
-        .toList
-
+    val contactGroups: Map[Int, List[Contact]] = parseContacts(contactLines)
+    val listings: List[Listing] = parseListings(lines, contactGroups)
 
     reader.close()
     contactsReader.close()
 
     println(s"total listings found: ${listings.length}")
     listings
+  }
+
+  private def parseListings(lines: List[List[String]], contactGroups: Map[Int, List[Contact]]) = {
+    lines
+      .foldLeft(Map[Int, Listing]()) { (acc, line) =>
+        parseListing(acc, line, contactGroups)
+      }
+      .values
+      .toList
+  }
+
+  private def parseContacts(contactLines: List[List[String]]) = {
+    contactLines
+      .map {
+        parseContact
+      }
+      .groupBy(_.listingId)
   }
 
   private def parseListing(acc: Map[Int, Listing],
@@ -66,7 +68,12 @@ object Parser {
         val id: Int = idStr.toInt
         val contacts = contactMap.getOrElse(id, List())
 
-        val listing = Listing(id, make, BigDecimal.decimal(price.toDouble), mileage.toInt, sellerType, contacts)
+        val listing = Listing(id,
+          make,
+          BigDecimal.decimal(price.toDouble),
+          mileage.toInt,
+          sellerType,
+          contacts)
 
         acc + (id -> listing)
       case line =>

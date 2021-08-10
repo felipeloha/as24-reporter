@@ -1,6 +1,6 @@
 package services
 
-import models.Listing
+import models.{Contact, Listing}
 
 object Reporter {
 
@@ -47,18 +47,9 @@ object Reporter {
         s"${contact.date.getMonth}.${contact.date.getYear}"
       })
       .map {
-        case (timestamp, groupedContacts) =>
-          //build map listing > numberOfContacts
+        case (timestamp, groupedContactsByTimestamp) =>
           val contactCountPerListing =
-            groupedContacts
-              .groupBy(_.listingId)
-              .map {
-                case (listingId, contacts) =>
-                  val listing = listings.find(_.id == listingId).last
-                  (listing, contacts.size)
-              }
-              .toSeq
-              .sortWith(_._2 > _._2)
+            countContactsByListing(groupedContactsByTimestamp, listings)
               .take(top)
 
           (timestamp, contactCountPerListing)
@@ -67,4 +58,15 @@ object Reporter {
       .sortBy(_._1)
   }
 
+  private def countContactsByListing(groupedContactsByTimestamp: List[Contact], listings: List[Listing]) = {
+    groupedContactsByTimestamp
+      .groupBy(_.listingId)
+      .map {
+        case (listingId, contacts) =>
+          val listing = listings.find(_.id == listingId).last
+          (listing, contacts.size)
+      }
+      .toSeq
+      .sortWith(_._2 > _._2)
+  }
 }
